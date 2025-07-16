@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+<head>
+    <title>MP3 Transcriber (Whisper)</title>
+    <style>
+        body { font-family: sans-serif; padding: 2em; }
+        textarea { width: 100%; height: 300px; margin-top: 1em; }
+    </style>
+</head>
+<body>
+    <h1>🎧 MP3 Transcriber (Whisper)</h1>
+    <div class="container">
+      <form id="uploadForm" method="post" enctype="multipart/form-data">
+        <div class="upload-area" id="uploadArea">
+          <input type="file" id="fileInput" name="audio" accept=".mp3" required hidden>
+          <div class="icon">🎵</div>
+          <p id="uploadText">Drag & drop your MP3 here or <span class="select-file">browse</span></p>
+        </div>
+        <button type="submit" class="transcribe-btn">Transcribe</button>
+      </form>
+      <div class="spinner" id="spinner" style="display:none;"></div>
+
+      {% if transcript %}
+      <div class="transcript-card">
+        <h2>Transcript</h2>
+        <pre id="transcriptText">{{ transcript }}</pre>
+        <a class="download-link" href="{{ url_for('download_file', filename=transcript_file) }}">⬇ Download Transcript</a>
+      </div>
+      {% endif %}
+    </div>
+    <script>
+      const uploadArea = document.getElementById('uploadArea');
+      const fileInput = document.getElementById('fileInput');
+      const uploadText = document.getElementById('uploadText');
+      const selectFile = document.querySelector('.select-file');
+      const form = document.getElementById('uploadForm');
+      const spinner = document.getElementById('spinner');
+
+      uploadArea.addEventListener('click', () => fileInput.click());
+      selectFile.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.click();
+      });
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+      });
+      uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+      });
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        fileInput.files = e.dataTransfer.files;
+        uploadText.innerText = fileInput.files[0]?.name || 'File selected';
+      });
+      fileInput.addEventListener('change', () => {
+        uploadText.innerText = fileInput.files[0]?.name || 'File selected';
+      });
+      form.addEventListener('submit', (e) => {
+        spinner.style.display = 'block';
+        const btn = document.querySelector('.transcribe-btn');
+        btn.disabled = true;
+        btn.innerText = 'Processing...';
+        // Prevent double submission
+        setTimeout(() => { btn.disabled = true; }, 10);
+      });
+    </script>
+    <style>
+      body {
+        font-family: 'Segoe UI', sans-serif;
+        background: #f7f9fc;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 500px;
+        margin: 3em auto;
+        background: #fff;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+        border-radius: 16px;
+        padding: 2em 2em 1em 2em;
+      }
+      h1 {
+        text-align: center;
+        font-weight: 700;
+        color: #2d3748;
+      }
+      .upload-area {
+        border: 2px dashed #a0aec0;
+        border-radius: 12px;
+        padding: 2em;
+        text-align: center;
+        cursor: pointer;
+        margin-bottom: 1.5em;
+        background: #f1f5f9;
+        transition: border-color 0.2s, background 0.2s;
+      }
+      .upload-area.dragover {
+        border-color: #3182ce;
+        background: #ebf8ff;
+      }
+      .icon {
+        font-size: 2.5em;
+        margin-bottom: 0.5em;
+      }
+      .select-file {
+        color: #3182ce;
+        text-decoration: underline;
+        cursor: pointer;
+        font-weight: 500;
+      }
+      .transcribe-btn {
+        background: linear-gradient(90deg, #3182ce 0%, #63b3ed 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.8em 2em;
+        font-size: 1.2em;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(49,130,206,0.10);
+        transition: background 0.2s, transform 0.1s;
+        margin-bottom: 1.5em;
+        width: 100%;
+      }
+      .transcribe-btn:hover {
+        background: linear-gradient(90deg, #2563eb 0%, #4299e1 100%);
+        transform: translateY(-2px) scale(1.01);
+      }
+      .spinner {
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #3182ce;
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        animation: spin 1s linear infinite;
+        margin: 1em auto 2em auto;
+        display: block;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .transcript-card {
+        background: #f9fafb;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(49,130,206,0.04);
+        padding: 1.5em;
+        margin-top: 2em;
+        text-align: left;
+      }
+      .transcript-card h2 {
+        margin-top: 0;
+        color: #3182ce;
+      }
+      #transcriptText {
+        background: #fff;
+        border-radius: 8px;
+        padding: 1em;
+        font-size: 1.1em;
+        color: #2d3748;
+        white-space: pre-wrap;
+        margin: 1em 0;
+        border: 1px solid #e2e8f0;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .download-link {
+        display: inline-block;
+        margin-top: 0.5em;
+        color: #3182ce;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+      .download-link:hover {
+        color: #2563eb;
+      }
+    </style>
+</body>
+</html>
